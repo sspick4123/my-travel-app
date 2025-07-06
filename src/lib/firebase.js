@@ -6,13 +6,14 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDLMpfKUWavlaXlLxHV52N6xA6_VoYgxX4",
-  authDomain: "travel-app-255a9.firebaseapp.com",
-  projectId: "travel-app-255a9",
-  storageBucket: "travel-app-255a9.firebasestorage.app",
-  messagingSenderId: "631028535459",
-  appId: "1:631028535459:web:be020b99193b0290132f16"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
+
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
