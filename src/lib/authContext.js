@@ -1,22 +1,17 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { auth } from "./firebase";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 
-// ✅ [추가] TypeScript 타입 선언
-type AuthContextType = {
-  user: User | null;
-};
-
-// ✅ [변경] createContext 부분에 타입 적용
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser || null);
     });
+
     return () => unsubscribe();
   }, []);
 
