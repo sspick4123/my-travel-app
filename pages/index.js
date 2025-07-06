@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
 import { collection, getDocs, query, orderBy, where } from "firebase/firestore";
 
+console.log("✅ index.js loaded");
+
 export default function Home() {
   const [posts, setPosts] = useState([]);
   const [search, setSearch] = useState("");
