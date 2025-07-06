@@ -1,3 +1,6 @@
+console.log("배포 강제 트리거");
+
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
