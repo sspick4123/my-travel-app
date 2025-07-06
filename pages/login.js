@@ -39,13 +39,15 @@ export default function Login() {
           placeholder="이메일"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-        /><br/>
+        />
+        <br />
         <input
           type="password"
           placeholder="비밀번호"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-        /><br/>
+        />
+        <br />
         <button type="submit">로그인</button>
       </form>
       <button onClick={handleGoogleLogin}>구글 로그인</button>
