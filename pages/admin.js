@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { db } from "../src/lib/firebase";
 import { collection, getDocs, doc, deleteDoc, query, orderBy } from "firebase/firestore";
-import { useAuth } from "../lib/authContext";
+import { useAuth } from "../src/lib/authContext";
 import Link from "next/link";
 
 export default function AdminPage() {
