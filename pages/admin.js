@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { db } from "../lib/firebase";
+import { db } from "../src/lib/firebase";
 import { collection, getDocs, doc, deleteDoc, query, orderBy } from "firebase/firestore";
 import { useAuth } from "../lib/authContext";
 import Link from "next/link";
