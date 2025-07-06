@@ -1,4 +1,5 @@
-console.log("배포 강제 트리거");
+console.log("✅ 배포된 index.js 실행됨");
+
 
 
 import Link from "next/link";
