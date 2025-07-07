@@ -1,5 +1,3 @@
-// pages/index.js
-console.log("🔥 최종 배포 테스트");  // 이 줄이 콘솔에 찍혀야 함
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
