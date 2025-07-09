@@ -1,26 +1,40 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
+/* 글로벌 색상 및 테마 변수 */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --background: #f9fafb; /* 밝은 회색 배경 */
+  --foreground: #111827; /* 딥 그레이 글씨 */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --primary: #22c55e;   /* 초록색 */
+  --secondary: #3b82f6; /* 파란색 */
+  --accent: #f59e0b;    /* 주황색 */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #1f2937; /* 다크모드: slate-800 */
+    --foreground: #f9fafb; /* 다크모드: 밝은 회색 글씨 */
+
+    --primary: #16a34a;   /* 다크모드 초록색 */
+    --secondary: #2563eb; /* 다크모드 파란색 */
+    --accent: #d97706;    /* 다크모드 주황색 */
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ✅ Tailwind Global 스타일 추가 */
+h1, h2, h3, h4, h5, h6 {
+  @apply font-bold text-gray-900;
+}
+
+a {
+  color: var(--primary); /* ✅ CSS 변수 기반 링크 색상 */
+  @apply hover:underline;
 }

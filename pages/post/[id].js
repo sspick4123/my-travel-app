@@ -2,19 +2,10 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { db, auth } from "../../src/lib/firebase";
 import {
-  doc,
-  getDoc,
-  updateDoc,
-  setDoc,
-  arrayUnion,
-  arrayRemove,
-  collection,
-  addDoc,
-  serverTimestamp,
-  query,
-  orderBy,
-  getDocs
+  doc, getDoc, updateDoc, setDoc, arrayUnion, arrayRemove,
+  collection, addDoc, serverTimestamp, query, orderBy, getDocs, deleteDoc
 } from "firebase/firestore";
+import Link from "next/link";
 
 export default function PostPage() {
   const router = useRouter();
@@ -66,6 +57,24 @@ export default function PostPage() {
       fetchComments();
     }
   }, [id]);
+
+  const handleDelete = async () => {
+    if (!auth.currentUser || auth.currentUser.uid !== post.authorId) {
+      alert("삭제 권한이 없습니다.");
+      return;
+    }
+    const confirmDelete = confirm("정말 삭제하시겠습니까?");
+    if (!confirmDelete) return;
+
+    try {
+      await deleteDoc(doc(db, "posts", id));
+      alert("게시글이 삭제되었습니다.");
+      router.push("/");
+    } catch (e) {
+      console.error("게시글 삭제 실패: ", e);
+      alert("게시글 삭제에 실패했습니다.");
+    }
+  };
 
   const handleLike = async () => {
     if (!auth.currentUser) {
@@ -121,6 +130,11 @@ export default function PostPage() {
       alert("로그인 후 댓글 작성 가능.");
       return;
     }
+
+    if (!comment.trim()) {
+      alert("댓글을 입력해주세요.")
+      return;
+    }
     try {
       const commentsRef = collection(db, "posts", id, "comments");
       await addDoc(commentsRef, {
@@ -160,44 +174,100 @@ export default function PostPage() {
     }
   };
 
-  if (!post) return <div>Loading...</div>;
+  if (!post) return <div className="text-center mt-10">Loading...</div>;
 
   return (
-    <div>
-      <h1>{post.title}</h1>
-      <p>{post.content}</p>
-      {post.imageUrl && <img src={post.imageUrl} alt="post image" width="300" />}
-      <p>카테고리: {post.category} | 지역: {post.region}</p>
+    <div className="min-h-screen bg-gray-100">
+      <main className="max-w-2xl mx-auto mt-10 bg-white p-6 rounded shadow">
+        {post.thumbnailUrl && (
+          <img
+            src={post.thumbnailUrl}
+            alt={post.title}
+            className="w-full h-64 object-cover rounded mb-4"
+          />
+        )}
 
-      <button onClick={handleLike}>
-        {liked ? "좋아요 취소" : "좋아요"} ({likeCount})
-      </button>
+        <div className="flex space-x-2 mb-4">
+          {post.category && (
+            <span className="bg-blue-500 text-white rounded px-2 py-1 text-xs">
+              {post.category}
+            </span>
+          )}
+          {post.location && (
+            <span className="bg-green-500 text-white rounded px-2 py-1 text-xs">
+              {post.location}
+            </span>
+          )}
+        </div>
 
-      <button onClick={handleBookmark}>
-        {bookmarked ? "북마크 취소" : "북마크"}
-      </button>
+        <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
+        <p className="text-gray-700 whitespace-pre-wrap mb-6">{post.content}</p>
 
-      {/* ✅ 신고 버튼 */}
-      <button onClick={handleReport}>신고하기</button>
+        <div className="flex flex-wrap gap-2 mb-6">
+          <button onClick={handleLike} className="bg-pink-500 text-white px-3 py-1 rounded">
+            {liked ? "좋아요 취소" : "좋아요"} ({likeCount})
+          </button>
 
-      <hr />
-      <h2>댓글 작성</h2>
-      <form onSubmit={handleCommentSubmit}>
-        <input
-          type="text"
-          placeholder="댓글 입력"
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-        />
-        <button type="submit">작성</button>
-      </form>
+          <button onClick={handleBookmark} className="bg-yellow-500 text-white px-3 py-1 rounded">
+            {bookmarked ? "북마크 취소" : "북마크"}
+          </button>
 
-      <h2>댓글 목록</h2>
-      <ul>
-        {comments.map(c => (
-          <li key={c.id}>{c.text}</li>
-        ))}
-      </ul>
+          {/* 수정 버튼 */}
+          {auth.currentUser ? (
+            auth.currentUser.uid === post.authorId ? (
+              <button
+                onClick={() => router.push(`/edit/${id}`)}
+                className="bg-gray-500 text-white px-3 py-1 rounded"
+              >
+                수정하기
+              </button>
+            ) : (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  alert("수정 권한이 없습니다.");
+                }}
+                className="bg-gray-400 text-white px-3 py-1 rounded cursor-not-allowed"
+              >
+                수정하기
+              </button>
+            )
+          ) : null}
+
+          {auth.currentUser?.uid === post.authorId && (
+            <button
+              onClick={handleDelete}
+              className="bg-red-600 text-white px-3 py-1 rounded"
+            >
+              삭제하기
+            </button>
+          )}
+
+          <button onClick={handleReport} className="bg-red-500 text-white px-3 py-1 rounded">
+            신고하기
+          </button>
+        </div>
+
+        <form onSubmit={handleCommentSubmit} className="mb-6">
+          <input
+            type="text"
+            placeholder="댓글 입력"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            className="border border-gray-300 rounded p-2 w-full mb-2"
+          />
+          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
+            댓글 작성
+          </button>
+        </form>
+
+        <h2 className="text-xl font-bold mb-2">댓글</h2>
+        <ul>
+          {comments.map(c => (
+            <li key={c.id} className="border-t py-2">{c.text}</li>
+          ))}
+        </ul>
+      </main>
     </div>
   );
 }

@@ -1,11 +1,15 @@
-import { AuthProvider } from "../src/lib/authContext.js";
-import "../src/styles/globals.css";
-import type { AppProps } from "next/app";
+// pages/_app.tsx
 
-function MyApp({ Component, pageProps }: AppProps) {
+import "../src/styles/globals.css";
+import { AuthProvider } from "../src/lib/authContext";
+import Layout from "../components/Layout"; // ✅ Layout import 추가
+
+function MyApp({ Component, pageProps }) {
   return (
     <AuthProvider>
-      <Component {...pageProps} />
+      <Layout> {/* ✅ Layout으로 감싸기 */}
+        <Component {...pageProps} />
+      </Layout>
     </AuthProvider>
   );
 }
