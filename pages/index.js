@@ -9,7 +9,7 @@ export default function HomePage() {
 
   useEffect(() => {
     const fetchPosts = async () => {
-      const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+      const q = query(collection(db, "blogPosts"), orderBy("createdAt", "desc"));
       const snapshot = await getDocs(q);
       setPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     };

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function PostCard({ post }) {
   return (
-    <Link href={`/post/${post.id}`} legacyBehavior>
+    <Link href={post.__deepLink || `/${post.type || type}/${post.id}`} legacyBehavior>
       <a>
         <div className="border rounded-lg bg-white shadow hover:shadow-lg transition cursor-pointer overflow-hidden">
           {/* 썸네일 이미지 */}
@@ -34,7 +34,7 @@ export default function PostCard({ post }) {
               {post.title}
             </h2>
 
-            {/* 내용 */}
+            {/* 내용 미리보기 */}
             <p className="text-gray-600">{post.content}</p>
           </div>
         </div>

@@ -31,26 +31,44 @@ export default function Login() {
   };
 
   return (
-    <div>
-      <h1>로그인</h1>
-      <form onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder="이메일"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <br />
-        <input
-          type="password"
-          placeholder="비밀번호"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <br />
-        <button type="submit">로그인</button>
-      </form>
-      <button onClick={handleGoogleLogin}>구글 로그인</button>
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-md">
+        <h1 className="text-2xl font-bold mb-6 text-center text-primary">로그인</h1>
+
+        <form onSubmit={handleLogin} className="space-y-4">
+          <input
+            type="email"
+            placeholder="이메일"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+
+          <input
+            type="password"
+            placeholder="비밀번호"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+
+          <button
+            type="submit"
+            className="w-full bg-primary text-white py-2 rounded-md hover:bg-green-600 transition-colors"
+          >
+            로그인
+          </button>
+        </form>
+
+        <div className="mt-6">
+          <button
+            onClick={handleGoogleLogin}
+            className="w-full bg-secondary text-white py-2 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            구글 로그인
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

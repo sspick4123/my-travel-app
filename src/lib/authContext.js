@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { auth } from "./firebase";
+import { auth, db } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
 // 1. Context 생성
 const AuthContext = createContext(null);
@@ -8,21 +9,43 @@ const AuthContext = createContext(null);
 // 2. Provider 컴포넌트
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // ✅ loading state 추가
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Firebase 인증 상태 변경 감지
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser || null);
-      setLoading(false); // ✅ 로딩 완료 시 false로 변경
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // ✅ Firestore에서 추가 정보 가져오기
+        const userRef = doc(db, "users", firebaseUser.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: userData.displayName || "No Name",
+            photoURL: firebaseUser.photoURL || null,
+          });
+        } else {
+          // Firestore 문서가 없으면 기본 auth user만 저장
+          setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName || "No Name",
+            photoURL: firebaseUser.photoURL || null,
+          });
+        }
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
     });
 
-    // cleanup
     return () => unsubscribe();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading }}> {/* ✅ loading 반환 */}
+    <AuthContext.Provider value={{ user, setUser, loading }}>
       {children}
     </AuthContext.Provider>
   );
@@ -34,5 +57,5 @@ export function useAuth() {
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
-  return context; // ✅ user, loading 포함
+  return context;
 }

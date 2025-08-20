@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { getDoc, doc } from "firebase/firestore";
+import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../src/lib/firebase";
 import { useAuth } from "../src/lib/authContext";
 
@@ -7,25 +7,28 @@ function TestFirestore() {
   const { user } = useAuth();
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!user) {
-        console.log("❗ 로그인 필요");
-        return;
-      }
+    const restoreUserDoc = async () => {
+      if (!user) return;
+
+      const ref = doc(db, "users", user.uid);
 
       try {
-        const ref = doc(db, "posts", "3ESiIsGn8ADuNJHNxruK"); // ✅ 네 실제 posts 문서 ID로 변경
-        const snap = await getDoc(ref);
-        console.log("✅ 데이터:", snap.data());
+        await updateDoc(ref, {
+          uid: user.uid,
+          email: user.email || "unknown@example.com",
+          followedAt: serverTimestamp(),
+        });
+
+        console.log("✅ 유저 문서 필드 복구 완료");
       } catch (error) {
-        console.log("❌ FirestoreError:", error.message);
+        console.error("❌ 복구 실패:", error.message);
       }
     };
 
-    fetchData();
+    restoreUserDoc();
   }, [user]);
 
-  return <div>Firestore Test</div>;
+  return <div className="p-10 text-xl">필드 복구 실행됨 ✅</div>;
 }
 
 export default TestFirestore;

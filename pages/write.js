@@ -1,42 +1,61 @@
-// 🔧 파일 위치: pages/write.js
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../src/lib/firebase"; // 너의 firebase 초기화 경로에 맞게 수정
-import { useAuth } from "../src/lib/authContext"; // 로그인 상태 확인용, 경로 확인 후 수정
+import { db } from "../src/lib/firebase";
+import { useAuth } from "../src/lib/authContext";
 
 export default function Write() {
   const router = useRouter();
-  const { user } = useAuth(); // 현재 로그인 유저
+  const { user } = useAuth();
+  const [type, setType] = useState(null);
+  const { from } = router.query; // 🔑 for redirect after writing
 
-  // 🔧 input state
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
-  const [category, setCategory] = useState("");
   const [location, setLocation] = useState("");
 
-  // 🔧 글 작성 함수
+  useEffect(() => {
+    if (router.isReady) {
+      setType(router.query.type);
+    }
+  }, [router.isReady]);
+
   const handleCreatePost = async () => {
     if (!user) {
       alert("로그인이 필요합니다.");
       return;
     }
 
+    const typeToCollection = {
+      blog: "blogPosts",
+      community: "communityPosts",
+      schedule: "schedules",
+      event: "events",
+    };
+
+    if (!type || !typeToCollection[type]) {
+      alert("잘못된 접근입니다. type 파라미터가 없습니다.");
+      return;
+    }
+
+    const targetCollection = typeToCollection[type];
+
     try {
-      await addDoc(collection(db, "posts"), {
+      const docRef = await addDoc(collection(db, targetCollection), {
         title,
         content,
         thumbnailUrl,
-        category,
         location,
         createdAt: serverTimestamp(),
         authorId: user.uid,
         authorEmail: user.email,
+        type, // 🔍 분류용
       });
+
       alert("게시글이 작성되었습니다!");
-      router.push("/"); // 작성 후 홈으로 이동
+      const redirectPath = `${type}/${docRef.id}`;
+      setTimeout(() => router.push(redirectPath), 100);
     } catch (e) {
       console.error("게시글 작성 실패: ", e);
       alert("게시글 작성에 실패했습니다.");
@@ -45,11 +64,9 @@ export default function Write() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-
       <main className="max-w-xl mx-auto mt-10 bg-white p-6 rounded shadow">
         <h1 className="text-2xl font-bold mb-4">✏️ 글 작성하기</h1>
 
-        {/* Title Input */}
         <div className="mb-4">
           <label className="block text-gray-700">제목</label>
           <input
@@ -61,7 +78,6 @@ export default function Write() {
           />
         </div>
 
-        {/* Content Input */}
         <div className="mb-4">
           <label className="block text-gray-700">내용</label>
           <textarea
@@ -72,7 +88,6 @@ export default function Write() {
           />
         </div>
 
-        {/* Thumbnail URL Input */}
         <div className="mb-4">
           <label className="block text-gray-700">썸네일 URL</label>
           <input
@@ -84,19 +99,6 @@ export default function Write() {
           />
         </div>
 
-        {/* Category Input */}
-        <div className="mb-4">
-          <label className="block text-gray-700">카테고리</label>
-          <input
-            type="text"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full border border-gray-300 p-2 rounded"
-            placeholder="카페, 맛집, 관광 등"
-          />
-        </div>
-
-        {/* Location Input */}
         <div className="mb-6">
           <label className="block text-gray-700">지역</label>
           <input
@@ -108,7 +110,6 @@ export default function Write() {
           />
         </div>
 
-        {/* Submit Button */}
         <button
           onClick={handleCreatePost}
           className="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded"

@@ -1,50 +1,77 @@
 import { db } from "../lib/firebase";
-import { doc, setDoc, deleteDoc } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  deleteDoc,
+  getDoc,
+  collection,
+  getDocs,
+  updateDoc,
+} from "firebase/firestore";
 
-// 🟢 팔로우 함수
+// — 기존 follow / unfollow 기능은 그대로 유지 —
+
+// 팔로우
 export const followUser = async (currentUser, targetUser) => {
-  if (
-    !currentUser || !targetUser ||
-    !currentUser.uid || !targetUser.uid
-  ) {
-    console.error("❌ followUser: currentUser 또는 targetUser의 uid가 존재하지 않습니다.", currentUser, targetUser);
-    return;
-  }
+  if (!currentUser?.uid || !targetUser?.uid) return;
+  const curSnap = await getDoc(doc(db, "users", currentUser.uid));
+  const myName = (curSnap.exists() ? curSnap.data().displayName : currentUser.displayName) || "No Name";
 
-  // ✅ 내 following 컬렉션에 추가
-  const followingRef = doc(db, "users", currentUser.uid, "following", targetUser.uid);
-  await setDoc(followingRef, {
-    uid: targetUser.uid,
-    displayName: targetUser.displayName || "No Name", // ✅ 기본값 처리
-    profileImageUrl: targetUser.profileImageUrl || "",
-    followedAt: new Date(),
-  });
-
-  // ✅ 상대방 followers 컬렉션에 추가
-  const followerRef = doc(db, "users", targetUser.uid, "followers", currentUser.uid);
-  await setDoc(followerRef, {
-    uid: currentUser.uid,
-    displayName: currentUser.displayName || "No Name", // ✅ 기본값 처리
-    profileImageUrl: currentUser.profileImageUrl || "",
-    followedAt: new Date(),
-  });
+  await setDoc(
+    doc(db, "users", currentUser.uid, "following", targetUser.uid),
+    {
+      uid: targetUser.uid,
+      displayName: targetUser.displayName,
+      profileImageUrl: targetUser.profileImageUrl || "",
+      followedAt: new Date(),
+    }
+  );
+  await setDoc(
+    doc(db, "users", targetUser.uid, "followers", currentUser.uid),
+    {
+      uid: currentUser.uid,
+      displayName: myName,
+      profileImageUrl: currentUser.profileImageUrl || "",
+      followedAt: new Date(),
+    }
+  );
 };
 
-// 🟢 언팔로우 함수
+// 언팔로우
 export const unfollowUser = async (currentUser, targetUser) => {
-  if (
-    !currentUser || !targetUser ||
-    !currentUser.uid || !targetUser.uid
-  ) {
-    console.error("❌ unfollowUser: currentUser 또는 targetUser의 uid가 존재하지 않습니다.", currentUser, targetUser);
-    return;
-  }
+  if (!currentUser?.uid || !targetUser?.uid) return;
+  await deleteDoc(doc(db, "users", currentUser.uid, "following", targetUser.uid));
+  await deleteDoc(doc(db, "users", targetUser.uid, "followers", currentUser.uid));
+};
 
-  // ✅ 내 following 컬렉션에서 삭제
-  const followingRef = doc(db, "users", currentUser.uid, "following", targetUser.uid);
-  await deleteDoc(followingRef);
+// ——————————
+//  변경 추가: followers 서브컬렉션 내 내 닉네임 업데이트
+// ——————————
+export const updateFollowersDisplayName = async ({ uid, displayName }) => {
+  if (!uid) return;
+  const snap = await getDocs(collection(db, "users", uid, "followers"));
+  await Promise.all(
+    snap.docs.map(d =>
+      updateDoc(
+        doc(db, "users", uid, "followers", d.id),
+        { displayName }
+      )
+    )
+  );
+};
 
-  // ✅ 상대방 followers 컬렉션에서 삭제
-  const followerRef = doc(db, "users", targetUser.uid, "followers", currentUser.uid);
-  await deleteDoc(followerRef);
+// ——————————
+//  변경 추가: following 서브컬렉션 내 내 닉네임 업데이트
+// ——————————
+export const updateFollowingDisplayName = async ({ uid, displayName }) => {
+  if (!uid) return;
+  const usersSnap = await getDocs(collection(db, "users"));
+  await Promise.all(
+    usersSnap.docs.map(async u => {
+      const ref = doc(db, "users", u.id, "following", uid);
+      if ((await getDoc(ref)).exists()) {
+        await updateDoc(ref, { displayName });
+      }
+    })
+  );
 };
